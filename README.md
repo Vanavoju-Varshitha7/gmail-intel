@@ -4,7 +4,7 @@ An AI-powered Gmail assistant that connects to your Gmail account, processes ema
 
 Live Demo
 
-[Add your Vercel URL here after deployment]
+https://gmail-intel.vercel.app/dashboard
 
 Features
 
