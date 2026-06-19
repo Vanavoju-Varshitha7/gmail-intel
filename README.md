@@ -1,4 +1,4 @@
-Gmail Intelligence Platform
+#Gmail Intelligence Platform
 
 An AI-powered Gmail assistant that connects to your Gmail account, processes emails intelligently, and provides a conversational AI interface to interact with, manage, and act on email data.
 
