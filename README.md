@@ -2,79 +2,101 @@
 
 An AI-powered Gmail assistant that connects to your Gmail account, processes emails intelligently, and provides a conversational AI interface to interact with, manage, and act on email data.
 
-Live Demo
-
+## Live Demo
 https://gmail-intel.vercel.app/dashboard
 
-Features
+## Features
 
+- **Gmail Integration** — Secure OAuth 2.0 login, syncs inbox emails and threads
+- **Email Summarization** — Auto-summarizes each email using Google Gemini AI
+- **Email Categorization** — Labels emails into Newsletter, Job/Recruitment, Finance, Notification, Personal, Work/Professional using NVIDIA NIM (Llama 3.1)
+- **AI Chat Agent** — Ask questions about your emails in natural language. Powered by RAG (Retrieval Augmented Generation) using pgvector
+- **Compose with AI** — Describe what you want to write, AI drafts the full email
+- **Send Emails** — Review AI draft and send directly from the app via Gmail API
+- **Thread-Aware** — Understands full email thread context for replies and summaries
 
-Gmail Integration — Secure OAuth 2.0 login, syncs inbox emails and threads
-Email Summarization — Auto-summarizes each email using Google Gemini AI
-Email Categorization — Labels emails into Newsletter, Job/Recruitment, Finance, Notification, Personal, Work/Professional using NVIDIA NIM (Llama 3.1)
-AI Chat Agent — Ask questions about your emails in natural language. Powered by RAG (Retrieval Augmented Generation) using pgvector
-Compose with AI — Describe what you want to write, AI drafts the full email
-Send Emails — Review AI draft and send directly from the app via Gmail API
-Thread-Aware — Understands full email thread context for replies and summaries
+## Tech Stack
 
+| Layer | Technology |
+|-------|-----------|
+| Frontend | Next.js 14 (App Router) |
+| Backend | Next.js API Routes |
+| Database | Supabase (PostgreSQL + pgvector) |
+| Primary AI | Google Gemini 1.5 Flash + text-embedding-004 |
+| Secondary AI | NVIDIA NIM — meta/llama-3.1-8b-instruct |
+| Auth | NextAuth.js with Google OAuth 2.0 |
+| Gmail | Google Gmail API v1 |
+| Deployment | Vercel |
 
-Tech Stack
+## How It Works
 
-LayerTechnologyFrontendNext.js 14 (App Router)BackendNext.js API RoutesDatabaseSupabase (PostgreSQL + pgvector)Primary AIGoogle Gemini 1.5 Flash + text-embedding-004Secondary AINVIDIA NIM — meta/llama-3.1-8b-instructAuthNextAuth.js with Google OAuth 2.0GmailGoogle Gmail API v1DeploymentVercel
+1. User logs in with Google OAuth
+2. App syncs emails from Gmail API and stores in Supabase
+3. NVIDIA NIM categorizes each email automatically
+4. Gemini summarizes each email
+5. Gemini text-embedding-004 creates vector embeddings stored in pgvector
+6. User asks questions → embeddings search finds relevant emails → Gemini answers with source attribution
 
-How It Works
+## Project Setup
 
+### Prerequisites
+- Node.js 18+
+- Supabase account (free)
+- Google Cloud Console project with Gmail API enabled
+- Google Gemini API key (free at aistudio.google.com)
+- NVIDIA NIM API key (free at build.nvidia.com)
 
-User logs in with Google OAuth
-App syncs emails from Gmail API and stores in Supabase
-NVIDIA NIM categorizes each email automatically
-Gemini summarizes each email
-Gemini text-embedding-004 creates vector embeddings stored in pgvector
-User asks questions → embeddings search finds relevant emails → Gemini answers with source attribution
+### Installation
 
-
-Project Setup
-
-Prerequisites
-
-
-Node.js 18+
-Supabase account (free)
-Google Cloud Console project with Gmail API enabled
-Google Gemini API key (free at aistudio.google.com)
-NVIDIA NIM API key (free at build.nvidia.com)
-
-
-Installation
-
-bashgit clone https://github.com/YOUR_USERNAME/gmail-intel.git
+```bash
+git clone https://github.com/YOUR_USERNAME/gmail-intel.git
 cd gmail-intel
 npm install --legacy-peer-deps
+```
 
-Environment Variables
+### Environment Variables
 
-Create a .env.local file in the root directory:
+#### For Local Development
+Create a `.env.local` file in the root directory and paste this (fill in your values):
 
-env# Google OAuth (from Google Cloud Console)
+```env
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
 NEXTAUTH_SECRET=any_random_secret_string
 NEXTAUTH_URL=http://localhost:3000
-
-# Supabase (from supabase.com project settings)
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
-
-# AI Keys
 GEMINI_API_KEY=your_gemini_api_key
 NVIDIA_API_KEY=your_nvidia_nim_api_key
+```
 
-Database Setup
+#### For Vercel (Production)
+Go to Vercel → Project → Settings → Environment Variables and add each key separately:
+
+| Key | Value |
+|-----|-------|
+| `GOOGLE_CLIENT_ID` | your Google OAuth client ID |
+| `GOOGLE_CLIENT_SECRET` | your Google OAuth client secret |
+| `NEXTAUTH_SECRET` | any random secret string |
+| `NEXTAUTH_URL` | `https://your-app.vercel.app` ← your actual Vercel URL |
+| `NEXT_PUBLIC_SUPABASE_URL` | your Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | your Supabase anon key |
+| `SUPABASE_SERVICE_ROLE_KEY` | your Supabase service role key |
+| `GEMINI_API_KEY` | your Gemini API key |
+| `NVIDIA_API_KEY` | your NVIDIA NIM API key |
+
+> ⚠️ **Common mistakes to avoid:**
+> - Do NOT write `NEXTAUTH_URL=NEXTAUTH_URL=https://...` — the key name goes only on the left side
+> - Do NOT wrap values in quotes in Vercel's UI
+> - After updating env vars, always **Redeploy** for changes to take effect
+
+### Database Setup
 
 Run this SQL in your Supabase SQL Editor:
 
-sqlcreate extension if not exists vector;
+```sql
+create extension if not exists vector;
 
 create table emails (
   id uuid default gen_random_uuid() primary key,
@@ -115,15 +137,19 @@ as $$
   order by embedding <=> query_embedding
   limit match_count;
 $$;
+```
 
-Running Locally
+### Running Locally
 
-bashnpm run dev
+```bash
+npm run dev
+```
 
-Open http://localhost:3000
+Open [http://localhost:3000](http://localhost:3000)
 
-Folder Structure
+## Folder Structure
 
+```
 gmail-intel/
 ├── app/
 │   ├── api/
@@ -142,27 +168,31 @@ gmail-intel/
 │   └── supabase.ts                       # Supabase client
 ├── .env.example                          # Environment variables template
 └── Architecture.md                       # System design document
+```
 
-Usage
+## Usage
 
+1. Click **Login with Google** and authorize Gmail access
+2. Click **Sync My Emails** — this fetches, categorizes, summarizes and indexes your emails
+3. Ask questions in the chat box like:
+   - "Which companies rejected my job application?"
+   - "Summarize all emails from last week"
+   - "What emails did I get about payments?"
+4. Use **Compose Email with AI** to draft and send emails
 
-Click Login with Google and authorize Gmail access
-Click Sync My Emails — this fetches, categorizes, summarizes and indexes your emails
-Ask questions in the chat box like:
+## Environment Variables Reference
 
-"Which companies rejected my job application?"
-"Summarize all emails from last week"
-"What emails did I get about payments?"
+| Variable | Description | Where to get it |
+|----------|-------------|-----------------|
+| GOOGLE_CLIENT_ID | OAuth client ID | console.cloud.google.com |
+| GOOGLE_CLIENT_SECRET | OAuth client secret | console.cloud.google.com |
+| NEXTAUTH_SECRET | Random secret string | Any random text |
+| NEXTAUTH_URL | App URL | http://localhost:3000 (local) or Vercel URL |
+| NEXT_PUBLIC_SUPABASE_URL | Supabase project URL | supabase.com project settings |
+| NEXT_PUBLIC_SUPABASE_ANON_KEY | Supabase public key | supabase.com project settings |
+| SUPABASE_SERVICE_ROLE_KEY | Supabase private key | supabase.com project settings |
+| GEMINI_API_KEY | Google Gemini API key | aistudio.google.com |
+| NVIDIA_API_KEY | NVIDIA NIM API key | build.nvidia.com |
 
-
-
-Use Compose Email with AI to draft and send emails
-
-
-Environment Variables Reference
-
-VariableDescriptionWhere to get itGOOGLE_CLIENT_IDOAuth client IDconsole.cloud.google.comGOOGLE_CLIENT_SECRETOAuth client secretconsole.cloud.google.comNEXTAUTH_SECRETRandom secret stringAny random textNEXTAUTH_URLApp URLhttp://localhost:3000 (local) or Vercel URLNEXT_PUBLIC_SUPABASE_URLSupabase project URLsupabase.com project settingsNEXT_PUBLIC_SUPABASE_ANON_KEYSupabase public keysupabase.com project settingsSUPABASE_SERVICE_ROLE_KEYSupabase private keysupabase.com project settingsGEMINI_API_KEYGoogle Gemini API keyaistudio.google.comNVIDIA_API_KEYNVIDIA NIM API keybuild.nvidia.com
-
-License
-
+## License
 MIT
